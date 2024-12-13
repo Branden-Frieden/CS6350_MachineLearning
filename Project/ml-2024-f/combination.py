@@ -9,6 +9,8 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import StandardScaler
 
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
 # Load the data
 df = pd.read_csv("train_final.csv")
 
@@ -21,8 +23,6 @@ for col in df.columns[:-1]:  # Exclude the target column
     df[col] = df[col].astype('category').cat.codes
     test_df[col] = test_df[col].astype('category').cat.codes
 
-print(df)
-print(test_df)
 
 # Get the answer column from train data
 answers = df.iloc[:, -1].copy()
@@ -34,7 +34,6 @@ Ids = test_df.iloc[:, 0].copy()
 test_df = test_df.drop(columns=test_df.columns[0])
 test_df = test_df.drop(columns=["native.country"])
 
-print("ids: ", Ids)
 
 # Split the dataset into training and validation sets
 X_train, X_val, y_train, y_val = train_test_split(
@@ -49,7 +48,6 @@ scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_val_scaled = scaler.transform(X_val)
 X_test_scaled = scaler.fit_transform(test_df)
-
 
 # Train Random Forest
 rf_model = RandomForestClassifier(random_state=42, n_estimators=200)
@@ -90,16 +88,16 @@ for rf_prob, svm_prob, log_prob, gb_prob, knn_prob in zip(rf_probs, svm_probs, l
     probs.append(rf_prob)
     confidences.append(max(rf_prob))
 
-    probs.append(svm_prob)
+    # probs.append(svm_prob)
     confidences.append(max(svm_prob))
 
-    probs.append(log_prob)
+    # probs.append(log_prob)
     confidences.append(max(log_prob))
 
-    probs.append(gb_prob)
+    # probs.append(gb_prob)
     confidences.append(max(gb_prob))
 
-    probs.append(knn_prob)
+    # probs.append(knn_prob)
     confidences.append(max(knn_prob))
 
     first_elements = [arr[0] for arr in probs]
@@ -140,6 +138,8 @@ knn_probs = knn_model.predict_proba(X_test_scaled)
 
 final_predictions = []
 final_preds = []
+
+
 for rf_prob, svm_prob, log_prob, gb_prob, knn_prob in zip(rf_probs, svm_probs, logistic_probs, gb_probs, knn_probs):
     confidences = []
     probs = []
@@ -148,16 +148,16 @@ for rf_prob, svm_prob, log_prob, gb_prob, knn_prob in zip(rf_probs, svm_probs, l
     probs.append(rf_prob)
     confidences.append(max(rf_prob))
 
-    probs.append(svm_prob)
+    # probs.append(svm_prob)
     confidences.append(max(svm_prob))
 
-    probs.append(log_prob)
+    # probs.append(log_prob)
     confidences.append(max(log_prob))
 
-    probs.append(gb_prob)
+    # probs.append(gb_prob)
     confidences.append(max(gb_prob))
 
-    probs.append(knn_prob)
+    # probs.append(knn_prob)
     confidences.append(max(knn_prob))
 
     first_elements = [arr[0] for arr in probs]
@@ -182,4 +182,4 @@ with open("predictions.csv", "w") as file:
     
     # Write each prediction to the file
     for i, pred in enumerate(final_preds):
-        file.write(f"{i + 1}, {pred}\n")
+        file.write(f"{i + 1}, {sigmoid(pred)}\n")
